@@ -5,34 +5,38 @@ date: "11/7/2019"
 output: html_document
 ---
 
+#Load required packages
 library("gplots")
 library("heatmap.plus")
 library("RColorBrewer")
 library("massageR")
 
+#Import data
 data<-read.csv("Symptoms Only.csv",row.names=1)
 
+#Re-label data
 data$Subject_type<-gsub("0","Contact",data$Subject_type)
 data$Subject_type<-gsub("1","Survivor",data$Subject_type)
 data$Gender<-gsub("0","Male",data$Gender)
 data$Gender<-gsub("1","Female",data$Gender)
 
+#Create vector of colors for contacts and survivors
 condition_colors <- unlist(lapply(data$Subject_type,function(x){
   if(grepl('Contact',x)) '#FFC0CB'
   else if(grepl('Survivor',x)) '#808080'
   }))
 
-condition_colors
-
+#Remove rows not used for this analysis
 colnames(data)
 data<-data[-c(1:3)]
 colnames(data)
+
+#Transpose and prepare data as matrix
 data<-t(data)
-
 data<-as.matrix(data)
-
 x<-data
 
+#Define cluster and distance settings
 z <- heat.clust(x,
                 scaledim="column",
                 zlim=c(-3,3),
@@ -42,14 +46,16 @@ z <- heat.clust(x,
                 hclustfun= function(x) hclust(x, method="single"),
                 scalefun = scale)
 
-#To remove column names
+#Remove column names
 mat = z$data
 colnames(mat) =rep("",ncol(mat))
 
 #If keeping column names, then do heatmap.2(z$data) instead of heatmap.2(mat)
 
+#Open graphics window
 quartz()
 
+#Generate heatmap
 heatmap.2(mat,
           Rowv=z$Rowv,
           Colv=z$Colv,
@@ -67,6 +73,7 @@ heatmap.2(mat,
           col=rev(colorRampPalette(brewer.pal(10, "RdBu"))(256)),
 )
 
+#Label heatmap
 legend(0.9,1,legend=c("Survivors","Contacts"),fill=c('#808080','#FFC0CB'),cex=1)
 title(main="Relationship between symptoms in ebola survivors and contacts",line=-1,adj = 0.62, family="Arial")
 title(xlab="single linkage hierarchical clustering",line=5)
